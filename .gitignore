@@ -1,0 +1,13 @@
+# Ignored files
+**/__pycache__
+**/.vscode
+**/.idea
+**/.old/
+**/test/
+**/temp/
+**/logs/
+**/backup/
+
+# Python 缓存
+*.pyc
+*.pyo

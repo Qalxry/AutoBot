@@ -1,0 +1,20 @@
+ws_server: ws://127.0.0.1:6199/ws
+reconnect_delay: 5
+ping_interval: 20
+ping_timeout: 20
+log_level: INFO
+self_id: 1950154414
+self_name: Vanilla
+chat_info:
+    1033991906:
+        chat_name: QQ群的群名称
+        chat_type: group
+    1029169577:
+        chat_name: ShizuriYuki
+        chat_type: user
+WAIT_TIME: 0.5
+SMALL_WAIT_TIME: 0.05
+QQ_WINDOW_POS: [640, 800]
+QQ_INPUT_POS: [862, 1455]
+OTHER_WINDOW_POS: [1960, 800]
+TEMP_DIR: ./temp
