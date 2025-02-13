@@ -1,0 +1,10 @@
+pyautogui
+pyperclip
+pybase64
+python-magic
+websockets
+PyYAML
+questionary
+requests
+python-dateutil
+rich

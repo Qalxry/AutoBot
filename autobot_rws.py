@@ -77,8 +77,16 @@ class ReverseWebSocketProtocol:
         action = req.get("action", "")
         params = req.get("params", {})
         echo = req.get("echo", "")
-        response = self.execute_action(action, params)
-        return self.build_response(**response, echo=echo)
+        try:
+            response = self.execute_action(action, params)
+            return self.build_response(**response, echo=echo)
+        except Exception as e:
+            logger.error(f"执行动作时发生异常：{e}")
+            return self.build_response(
+                retcode=1401,
+                message="Failed to execute action",
+                echo=echo,
+            )
 
     def build_event_lifetime(
         self,

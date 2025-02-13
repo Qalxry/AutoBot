@@ -1,3 +1,5 @@
+import os
+import shutil
 import asyncio
 from notify_auto import message_monitor, set_config, init_auto
 from autobot_rws import run_reverse_websocket
@@ -14,6 +16,14 @@ import yaml
 async def main():
     with open("config.yaml", "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
+        
+    # 清空临时文件夹
+    clear_temp_at_startup = config.get("clear_temp_at_startup", True)
+    if clear_temp_at_startup:
+        TEMP_DIR = config["TEMP_DIR"]
+        shutil.rmtree(TEMP_DIR, ignore_errors=True)
+        os.makedirs(TEMP_DIR, exist_ok=True)
+    
     set_logger_level(config["log_level"])
     set_config(config)
     init_auto()

@@ -546,11 +546,11 @@ def clear_input_buffer():
 
 def select(
     message: str,
-    selections: list[str],
-    default: int | str = 0,
+    selections: List[str],
+    default: Union[int, str] = 0,
     return_index: bool = False,
     skip: bool = False,
-) -> str | int:
+) -> Union[str, int]:
     """选择界面"""
     assert len(selections) > 0, "选项列表不能为空"
     assert 0 <= default < len(selections), "默认选项超出范围"
@@ -594,11 +594,11 @@ def confirm(
 
 def multi_select(
     message: str,
-    selections: list[str],
-    default: list[int | str] = [],
+    selections: List[str],
+    default: List[Union[int, str]] = [],
     return_index: bool = False,
     skip: bool = False,
-) -> list[str | int]:
+) -> List[Union[str, int]]:
     """多选界面"""
     assert len(selections) > 0, "选项列表不能为空"
     assert all(0 <= i < len(selections) for i in default), "默认选项超出范围"
@@ -679,7 +679,7 @@ def input(
     return res
 
 
-def prompt(questions: list[dict]) -> dict:
+def prompt(questions: List[dict]) -> dict:
     """批量问题
     输入示例：
     questions = [
@@ -861,7 +861,7 @@ class LoadingAnimation:
         self.stop()  # 退出上下文时停止动画
 
 
-def ensure_date(*args) -> Union[datetime.date, tuple[datetime.date]]:
+def ensure_date(*args) -> Union[datetime.date, Tuple[datetime.date]]:
     """确保日期格式"""
     ret = ()
     for arg in args:
@@ -1078,14 +1078,14 @@ def is_url_exists(
 
 
 def is_url_exists_batch(
-    urls: list[str],
+    urls: List[str],
     num_workers: int = 8,
     user_agent=None,
     max_retries=3,
     timeout=3,
     verbose=False,
     progress_bar=False,
-) -> list[bool]:
+) -> List[bool]:
     """
     批量检查 URL 是否存在（多线程并发版本）
 

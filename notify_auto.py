@@ -1,4 +1,5 @@
 import os
+import re
 import random
 import time
 import asyncio
@@ -11,16 +12,20 @@ import imghdr
 import pybase64
 import mimetypes
 import magic
+import shutil
 from log_config import logger
-from typing import Literal
+from typing import Literal, Optional
 
 # 等待时间
 WAIT_TIME = 0.5
 SMALL_WAIT_TIME = 0.05
+LOCATE_METHOD = "absolute"
+SCREEN_SIZE = pyautogui.size()
 QQ_WINDOW_POS = (640, 800)
 QQ_INPUT_POS = (862, 1455)
 OTHER_WINDOW_POS = (1960, 800)
 TEMP_DIR = "./temp"
+ASTRBOT_DATA_DIR = "./"
 
 # 聊天信息
 self_id = 1950154414
@@ -32,7 +37,7 @@ chat_info = {
     },
     "1029169577": {
         "chat_name": "ShizuriYuki",
-        "chat_type": "user",
+        "chat_type": "private",
     },
 }
 
@@ -47,17 +52,28 @@ def create_mapping(chat_info):
 
 
 def set_config(config: dict):
-    global self_id, self_name, chat_info, WAIT_TIME, SMALL_WAIT_TIME, QQ_WINDOW_POS, QQ_INPUT_POS, OTHER_WINDOW_POS, TEMP_DIR
+    global self_id, self_name, chat_info
+    global WAIT_TIME, SMALL_WAIT_TIME, TEMP_DIR, ASTRBOT_DATA_DIR
+    global QQ_WINDOW_POS, QQ_INPUT_POS, OTHER_WINDOW_POS, LOCATE_METHOD
     global chat_id2chat_name, chat_name2chat_type, chat_name2chat_id, chat_id2chat_type
     self_id = config.get("self_id", self_id)
     self_name = config.get("self_name", self_name)
     chat_info = config.get("chat_info", chat_info)
     WAIT_TIME = config.get("WAIT_TIME", WAIT_TIME)
     SMALL_WAIT_TIME = config.get("SMALL_WAIT_TIME", SMALL_WAIT_TIME)
+    LOCATE_METHOD = config.get("LOCATE_METHOD", LOCATE_METHOD)
     QQ_WINDOW_POS = config.get("QQ_WINDOW_POS", QQ_WINDOW_POS)
     QQ_INPUT_POS = config.get("QQ_INPUT_POS", QQ_INPUT_POS)
     OTHER_WINDOW_POS = config.get("OTHER_WINDOW_POS", OTHER_WINDOW_POS)
+    if LOCATE_METHOD == "relative":
+        QQ_WINDOW_POS = (int(SCREEN_SIZE.width * QQ_WINDOW_POS[0]), int(SCREEN_SIZE.height * QQ_WINDOW_POS[1]))
+        QQ_INPUT_POS = (int(SCREEN_SIZE.width * QQ_INPUT_POS[0]), int(SCREEN_SIZE.height * QQ_INPUT_POS[1]))
+        OTHER_WINDOW_POS = (int(SCREEN_SIZE.width * OTHER_WINDOW_POS[0]), int(SCREEN_SIZE.height * OTHER_WINDOW_POS[1]))
+        logger.debug(
+            f"QQ_WINDOW_POS: {QQ_WINDOW_POS}, QQ_INPUT_POS: {QQ_INPUT_POS}, OTHER_WINDOW_POS: {OTHER_WINDOW_POS}"
+        )
     TEMP_DIR = config.get("TEMP_DIR", TEMP_DIR)
+    ASTRBOT_DATA_DIR = config.get("ASTRBOT_DATA_DIR", ASTRBOT_DATA_DIR)
     chat_id2chat_name, chat_name2chat_type, chat_name2chat_id, chat_id2chat_type = create_mapping(chat_info)
 
 
@@ -174,15 +190,19 @@ def close_auto():
 
 
 @enable_log
-def copy_file_to_clipboard(file_path):
+def copy_file_to_clipboard(file_path, file_name=None):
+    os.makedirs(TEMP_DIR, exist_ok=True)
     if file_path.startswith("http"):
         # 网络路径
-        os.makedirs(TEMP_DIR, exist_ok=True)
-        local_file_path = tui.download_file(file_path, TEMP_DIR)
-        file_uri = f"file://{os.path.abspath(local_file_path)}"
+        temp_file = tui.download_file(file_path, os.path.join(TEMP_DIR, file_name) if file_name else TEMP_DIR)
+        file_uri = f"file://{os.path.abspath(temp_file)}"
     elif file_path.startswith("file://"):
         # 本地路径
-        file_uri = file_path
+        # file_uri = file_path
+        # 复制文件到临时目录
+        temp_file = os.path.join(TEMP_DIR, file_name if file_name else os.path.basename(file_path))
+        shutil.copy(file_path[7:], temp_file)
+        file_uri = f"file://{os.path.abspath(temp_file)}"
     elif file_path.startswith("base64://") or file_path.startswith("data:"):
         # 将 base64 编码转换为文件
         # if file_path.startswith("base64://"):
@@ -205,27 +225,49 @@ def copy_file_to_clipboard(file_path):
         # 验证文件存在性
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"文件不存在: {file_path}")
-        # 转换为 URI 格式
-        absolute_path = os.path.abspath(file_path)
-        file_uri = f"file://{absolute_path}"
+        temp_file = os.path.join(TEMP_DIR, file_name if file_name else os.path.basename(file_path))
+        shutil.copy(file_path, temp_file)
+        file_uri = f"file://{os.path.abspath(temp_file)}"
 
     # 使用 xclip 写入剪贴板
     subprocess.run(
         ["xclip", "-selection", "clipboard", "-t", "text/uri-list"], input=file_uri.encode("utf-8"), check=True
     )
+    return temp_file
 
 
 @enable_log
-def safe_copy_file(file_path):
+def safe_file_name(file_name):
+    # return (
+    #     file_name.replace(" ", "_")
+    #     .replace("/", "_")
+    #     .replace("\\", "_")
+    #     .replace(":", "_")
+    #     .replace("*", "_")
+    #     .replace("?", "_")
+    #     .replace('"', "_")
+    #     .replace("<", "_")
+    #     .replace(">", "_")
+    #     .replace("|", "_")
+    # )
+    return re.sub(r'[\\/:*?"<>|]', "_", file_name)
+
+
+@enable_log
+def safe_copy_file(file_path, file_name=None) -> Optional[str]:
     try:
-        copy_file_to_clipboard(file_path)
-        logger.debug(f"成功复制到剪贴板: {file_path}")
+        if file_name:
+            file_name = safe_file_name(file_name)
+        temp_file = copy_file_to_clipboard(file_path, file_name)
+        logger.debug(f"成功复制到剪贴板: {temp_file}")
+        return temp_file
     except FileNotFoundError as e:
         logger.error(f"错误: {str(e)}")
     except subprocess.CalledProcessError:
         logger.error("xclip 执行失败，请确保已安装")
     except Exception as e:
         logger.error(f"未知错误: {str(e)}")
+    return None
 
 
 @enable_log
@@ -302,19 +344,28 @@ def qq_input_at(qq_name):
 @enable_log
 def qq_input_image(file_path):
     """输入图片。"""
-    safe_copy_file(file_path)
+    temp_file = safe_copy_file(file_path)
+    if not temp_file:
+        return
     pyautogui.hotkey("ctrl", "v")
     time.sleep(SMALL_WAIT_TIME)
 
 
 @enable_log
-def qq_send_file(file_path):
+def qq_send_file(file_path, file_name=None):
     """输入文件。"""
-    safe_copy_file(file_path)
+    if file_path.startswith("/AstrBot"):
+        file_path = file_path.replace("/AstrBot", ".")
+        file_path = os.path.join(ASTRBOT_DATA_DIR, file_path)
+    temp_file = safe_copy_file(file_path, file_name)
+    if not temp_file:
+        return
     pyautogui.hotkey("ctrl", "v")
+    pyautogui.keyDown("enter")
     time.sleep(SMALL_WAIT_TIME)
-    pyautogui.press("enter")
-    time.sleep(WAIT_TIME)
+    pyautogui.keyUp("enter")
+    # 1h 后删除临时文件
+    # os.remove(temp_file)
 
 
 @enable_log
@@ -330,12 +381,15 @@ def qq_send_message(message_type: Literal["group", "private"], chat_id: str, mes
         qq_open(chat_id)
         qq_input_init()
         text_gather = ""
+        has_input_text = False
         for item in message:
             if item["type"] == "text":
                 text_gather += item["data"]["text"].strip()
+                has_input_text = True
                 continue
             elif item["type"] == "json":
                 text_gather += item["data"]["data"].strip()
+                has_input_text = True
                 continue
             elif text_gather != "":
                 qq_input_text(text_gather)
@@ -343,16 +397,19 @@ def qq_send_message(message_type: Literal["group", "private"], chat_id: str, mes
             if item["type"] == "at":
                 if message_type == "group":
                     qq_input_at(chat_id2chat_name.get(item["data"]["qq"], item["data"]["qq"]))
+                    has_input_text = True
             elif item["type"] == "image":
                 qq_input_image(item["data"]["file"])
+                has_input_text = True
             elif item["type"] == "file":
-                qq_send_file(item["data"]["file"])
+                qq_send_file(item["data"]["file"], item["data"]["name"])
                 qq_input_init()
             else:
                 logger.warning(f"不支持的消息类型: {item}")
         if text_gather != "":
             qq_input_text(text_gather)
-        qq_input_send()
+        if has_input_text:
+            qq_input_send()
         qq_close()
     except Exception as e:
         logger.error(f"发送消息失败, chat_name: {chat_id}, message: {message}, error: {e}")
@@ -360,14 +417,6 @@ def qq_send_message(message_type: Literal["group", "private"], chat_id: str, mes
         return None
     send_message_id += 1
     return send_message_id
-
-
-@enable_log
-def send_file(file_path, chat_name):
-    """将 file_path 路径的文件发送给 chat_name 指定的对象。"""
-    qq_open(chat_name)
-    qq_send_file(file_path)
-    qq_close()
 
 
 # # 同步处理消息的函数
@@ -465,7 +514,9 @@ capture == 2 {
             line = line.split('"')[1]  # 匹配双引号内的内容
             buffer.append(line)
 
-        chat_name = buffer[0]
+        logger.debug(f'收到消息: "{buffer[0]}" "{buffer[1]}"')
+
+        chat_name = buffer[0].strip()
         notify_content: str = buffer[1]
 
         # 检查是否为有效消息
@@ -484,13 +535,20 @@ capture == 2 {
             logger.debug(f"过滤掉非文本消息: {notify_content}")
             continue
 
-        if notify_content.startswith("[有人@我] "):
-            notify_content = notify_content.replace("[有人@我] ", "")
-
+        message = []
         chat_type = chat_name2chat_type.get(chat_name, "group")
+        logger.debug(f"chat_name: {chat_name}, notify_content: {notify_content} chat_type: {chat_type}")
+
         if chat_type == "group":
-            sender_nickname = notify_content.split("：")[0]
+            at_flag = False
+            if notify_content.startswith("[有人@我] "):
+                notify_content = notify_content.replace("[有人@我] ", "")
+                at_flag = True
             raw_message = notify_content.split("：", 1)[1]
+            sender_nickname = notify_content.split("：")[0]
+            sender_user_id = chat_name2chat_id.get(sender_nickname, 0)
+            if at_flag:
+                message.append({"type": "at", "data": {"qq": chat_name2chat_id.get(sender_nickname, 0)}})
             event = {
                 "time": int(time.time()),
                 "post_type": "message",
@@ -498,11 +556,11 @@ capture == 2 {
                 "sub_type": "normal",
                 "message_id": receive_message_id,
                 "group_id": chat_name2chat_id.get(chat_name, 0),
-                "user_id": chat_name2chat_id.get(sender_nickname, 0),
-                "message": [{"type": "text", "data": {"text": raw_message}}],
+                "user_id": sender_user_id,
+                "message": message + [{"type": "text", "data": {"text": raw_message}}],
                 "raw_message": raw_message,
                 "sender": {
-                    "user_id": chat_name2chat_id.get(sender_nickname, 0),
+                    "user_id": sender_user_id,
                     "nickname": sender_nickname,
                     "role": "member",
                 },
