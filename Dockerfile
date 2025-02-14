@@ -1,29 +1,27 @@
-# 使用官方Ubuntu Noble精简版基础镜像
-FROM ubuntu:noble
+FROM kasmweb/core-ubuntu-jammy:1.16.1
 
-# 安装核心组件并清理缓存（单层操作减少镜像体积）
+USER root
+
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    xvfb \
-    x11vnc \
-    dbus \
-    dbus-x11 \
-    python3.10 \
-    python3.10-venv \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    python3-tk \
+    python3-dev \
+    python3-pip \
+    libmagic1 \
+    libmagic-dev \
+    xdg-utils \ 
+    xdotool \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 创建VNC密码文件（密码为"autobot"）
-RUN mkdir -p /root/.vnc && \
-    x11vnc -storepasswd autobot /root/.vnc/passwd && \
-    chmod 600 /root/.vnc/passwd
+COPY . /AutoBot/
+WORKDIR /AutoBot
+RUN dpkg -i bin/QQ_3.2.12_240927_amd64_01.deb && rm -rf bin/QQ_3.2.12_240927_amd64_01.deb && \
+    pip3 install --no-cache-dir -r requirements.txt
 
-# 设置启动脚本
-COPY start.sh /
-RUN chmod +x /start.sh
+RUN chmod +x /AutoBot/run_in_docker.sh && chmod +x /AutoBot/scripts/*.sh
+# CMD ["python3", "main.py"]
+# CMD ["/AutoBot/run_in_docker.sh"]
 
-# 暴露VNC端口
-EXPOSE 5900
-
-# 启动服务
-CMD ["/start.sh"]
+# ENTRYPOINT ["bash", "/AutoBot/run_in_docker.sh"]
+# CMD ["--wait"]

@@ -26,6 +26,7 @@ QQ_INPUT_POS = (862, 1455)
 OTHER_WINDOW_POS = (1960, 800)
 TEMP_DIR = "./temp"
 ASTRBOT_DATA_DIR = "./"
+NOTIFICATION_REPEAT_COUNT = 2
 
 # 聊天信息
 self_id = 1950154414
@@ -54,7 +55,7 @@ def create_mapping(chat_info):
 def set_config(config: dict):
     global self_id, self_name, chat_info
     global WAIT_TIME, SMALL_WAIT_TIME, TEMP_DIR, ASTRBOT_DATA_DIR
-    global QQ_WINDOW_POS, QQ_INPUT_POS, OTHER_WINDOW_POS, LOCATE_METHOD
+    global QQ_WINDOW_POS, QQ_INPUT_POS, OTHER_WINDOW_POS, LOCATE_METHOD, NOTIFICATION_REPEAT_COUNT
     global chat_id2chat_name, chat_name2chat_type, chat_name2chat_id, chat_id2chat_type
     self_id = config.get("self_id", self_id)
     self_name = config.get("self_name", self_name)
@@ -74,6 +75,7 @@ def set_config(config: dict):
         )
     TEMP_DIR = config.get("TEMP_DIR", TEMP_DIR)
     ASTRBOT_DATA_DIR = config.get("ASTRBOT_DATA_DIR", ASTRBOT_DATA_DIR)
+    NOTIFICATION_REPEAT_COUNT = config.get("NOTIFICATION_REPEAT_COUNT", NOTIFICATION_REPEAT_COUNT)
     chat_id2chat_name, chat_name2chat_type, chat_name2chat_id, chat_id2chat_type = create_mapping(chat_info)
 
 
@@ -354,8 +356,8 @@ def qq_input_image(file_path):
 @enable_log
 def qq_send_file(file_path, file_name=None):
     """输入文件。"""
-    if file_path.startswith("/AstrBot"):
-        file_path = file_path.replace("/AstrBot", ".")
+    if file_path.startswith("/AstrBot/data"):
+        file_path = file_path.replace("/AstrBot/data", ".")
         file_path = os.path.join(ASTRBOT_DATA_DIR, file_path)
     temp_file = safe_copy_file(file_path, file_name)
     if not temp_file:
@@ -396,7 +398,7 @@ def qq_send_message(message_type: Literal["group", "private"], chat_id: str, mes
                 text_gather = ""
             if item["type"] == "at":
                 if message_type == "group":
-                    qq_input_at(chat_id2chat_name.get(item["data"]["qq"], item["data"]["qq"]))
+                    qq_input_at(chat_id2chat_name.get(str(item["data"]["qq"]), item["data"]["qq"]))
                     has_input_text = True
             elif item["type"] == "image":
                 qq_input_image(item["data"]["file"])
@@ -464,7 +466,7 @@ async def get_event():
 
 
 async def message_monitor():
-    global event_queue, chat_name2chat_type, chat_name2chat_id, receive_message_id, self_id, self_name
+    global event_queue, chat_name2chat_type, chat_name2chat_id, receive_message_id, self_id, self_name, NOTIFICATION_REPEAT_COUNT
     """
     实时获取输出。
     由于每条消息会重复输出2次，这里简单通过比较和去重的方式进行处理。
@@ -520,10 +522,11 @@ capture == 2 {
         notify_content: str = buffer[1]
 
         # 检查是否为有效消息
-        hash_count[chat_name + notify_content] = hash_count.get(chat_name + notify_content, 0) + 1
-        if hash_count[chat_name + notify_content] > 1:
-            hash_count.pop(chat_name + notify_content)
-            continue
+        if NOTIFICATION_REPEAT_COUNT > 1:
+            hash_count[chat_name + notify_content] = hash_count.get(chat_name + notify_content, 0) + 1
+            if hash_count[chat_name + notify_content] >= NOTIFICATION_REPEAT_COUNT:
+                hash_count.pop(chat_name + notify_content)
+                continue
 
         # 过滤掉无效消息："你有xx条新消息"
         if notify_content.startswith("你有") and notify_content.endswith("条新通知"):
@@ -531,24 +534,25 @@ capture == 2 {
             continue
 
         # 过滤掉纯文本以外的消息
-        if notify_content.startswith("[") and notify_content.endswith("]"):
-            logger.debug(f"过滤掉非文本消息: {notify_content}")
-            continue
+        # if notify_content.startswith("[") and notify_content.endswith("]"):
+        #     logger.debug(f"过滤掉非文本消息: {notify_content}")
+        #     continue
 
         message = []
-        chat_type = chat_name2chat_type.get(chat_name, "group")
+        chat_type = chat_name2chat_type.get(str(chat_name), "group")
         logger.debug(f"chat_name: {chat_name}, notify_content: {notify_content} chat_type: {chat_type}")
 
         if chat_type == "group":
             at_flag = False
             if notify_content.startswith("[有人@我] "):
                 notify_content = notify_content.replace("[有人@我] ", "")
+                notify_content = notify_content.replace(f"@{self_name} ", "")
                 at_flag = True
             raw_message = notify_content.split("：", 1)[1]
             sender_nickname = notify_content.split("：")[0]
             sender_user_id = chat_name2chat_id.get(sender_nickname, 0)
             if at_flag:
-                message.append({"type": "at", "data": {"qq": chat_name2chat_id.get(sender_nickname, 0)}})
+                message.append({"type": "at", "data": {"qq": int(self_id)}})
             event = {
                 "time": int(time.time()),
                 "post_type": "message",

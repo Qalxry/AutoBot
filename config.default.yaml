@@ -1,0 +1,63 @@
+####################################################################
+#                 DO NOT MODIFY THIS FILE !!!                      #
+# Please copy this file to ./data/config.yaml and modify it there. #
+####################################################################
+
+# If AutoBot and AstrBot are running on the different docker containers,
+# you need to change the host to the AstrBot's container name like ws://astrbot:6199/ws
+ws_server: ws://127.0.0.1:6199/ws
+
+# The delay time before reconnecting to the websocket server
+reconnect_delay: 5
+
+# The interval of sending ping message to the websocket server
+ping_interval: 20
+
+# The timeout of the ping message
+ping_timeout: 20
+
+# The log level of the bot (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+log_level: INFO
+
+# The QQ number of the bot
+self_id: '123456789'
+
+# The QQ name of the bot
+self_name: AutoBot
+
+# The contact information of the bot
+chat_info:
+    '987654321':
+        chat_name: QQ群群名
+        chat_type: group
+    '233333333':
+        chat_name: QQ用户名
+        chat_type: private
+
+# The wait time for PyAutoGUI
+WAIT_TIME: 0.5
+SMALL_WAIT_TIME: 0.05
+
+# The method of locating the QQ window and input box
+# LOCATE_METHOD: absolute
+# QQ_WINDOW_POS: [640, 800]
+# QQ_INPUT_POS: [862, 1455]
+# OTHER_WINDOW_POS: [1960, 800]
+LOCATE_METHOD: relative # relative or absolute
+QQ_WINDOW_POS: [0.25, 0.5] # 0.25 means 25% of the screen width
+QQ_INPUT_POS: [0.25, 0.8]
+OTHER_WINDOW_POS: [0.75, 0.5]
+
+# The temporary directory
+TEMP_DIR: temp
+
+# The directory of the AstrBot/data, which is used to obtain the files that AstroBot wants to send.
+# When you run it in Docker format, it is very important.
+# AutoBot will replace the /AstrBot/data prefix in the file path sent by AstrBot with this path prefix.
+ASTRBOT_DATA_DIR: /AstrBot/data
+
+# Clear the temporary directory at the startup, to avoid the accumulation of temporary files.
+clear_temp_at_startup: False
+
+# The notification repeat count
+NOTIFICATION_REPEAT_COUNT: 2

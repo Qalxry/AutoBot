@@ -2,12 +2,15 @@
 **/__pycache__
 **/.vscode
 **/.idea
-**/.old/
-**/test/
-**/temp/
-**/logs/
-**/backup/
-
+**/.old
+**/test
+**/temp
+**/logs
+**/backup
+**/data/*
+**/bin/*
 # Python 缓存
 *.pyc
 *.pyo
+
+!**/.gitkeep

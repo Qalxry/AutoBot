@@ -1,0 +1,20 @@
+# 复用 gitignore 规则
+**/__pycache__
+**/.vscode
+**/.idea
+**/.old
+**/test
+**/temp
+**/logs
+**/backup
+**/data/*
+*.pyc
+*.pyo
+!**/.gitkeep
+
+# 补充 Docker 专用忽略规则
+Dockerfile
+.dockerignore
+docker-compose*.yml
+*.dockerignore
+*.swp

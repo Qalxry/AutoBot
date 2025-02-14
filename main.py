@@ -14,7 +14,10 @@ import yaml
 # TODO 将 AutoBot 上传到 PyPI 上
 
 async def main():
-    with open("config.yaml", "r") as f:
+    if not os.path.exists("data/config.yaml"):
+        shutil.copyfile("config.default.yaml", "data/config.yaml")
+    
+    with open("data/config.yaml", "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         
     # 清空临时文件夹
