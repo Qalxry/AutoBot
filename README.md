@@ -1,4 +1,4 @@
-# AutoBot
+![AutoBot](https://socialify.git.ci/Qalxry/AutoBot/image?description=1&font=Jost&logo=https%3A%2F%2Fraw.githubusercontent.com%2FQalxry%2FAutoBot%2Frefs%2Fheads%2Fmain%2Fassets%2Flogo.png&name=1&owner=1&pattern=Plus&stargazers=1&theme=Auto)
 
 使用 PyAutoGUI 的简单 QQ 消息平台，基于 OneBot11 协议。使用反向 WebSocket 连接。
 
@@ -73,7 +73,7 @@ sudo docker run -itd \
 ```bash
 git clone https://github.com/Qalxry/AutoBot
 cd AutoBot
-wget https://github.com/Qalxry/AutoBot/releases/latest/download/QQ_3.2.12_240927_amd64_01.deb -O ./bin/QQ_3.2.12_240927_amd64_01.deb
+wget https://github.com/Qalxry/AutoBot/releases/download/1.0.0/QQ_3.2.12_240927_amd64_01.deb -O ./bin/QQ_3.2.12_240927_amd64_01.deb
 sudo docker build -t autobot .
 sudo docker run -d \
     --name autobot \
