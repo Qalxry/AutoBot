@@ -110,10 +110,10 @@ ping_timeout: 20
 log_level: INFO
 
 # 机器人的 QQ 号码
-self_id: '1950154414'
+self_id: '123123123'
 
 # 机器人的 QQ 昵称
-self_name: Vanilla
+self_name: AutoBot
 
 # 机器人的联系人信息，相当于手动设置机器人的好友列表和群列表，群成员也可以写到 private 里
 # 这个不是必须的，但是如果想使用 At 功能，就需要设置这个
