@@ -13,8 +13,8 @@
 !**/.gitkeep
 
 # 补充 Docker 专用忽略规则
-Dockerfile
-.dockerignore
+# Dockerfile
+# .dockerignore
 docker-compose*.yml
 *.dockerignore
 *.swp
