@@ -19,9 +19,6 @@ WORKDIR /AutoBot
 RUN dpkg -i bin/QQ_3.2.12_240927_amd64_01.deb && rm -rf bin/QQ_3.2.12_240927_amd64_01.deb && \
     pip3 install --no-cache-dir -r requirements.txt
 
-RUN chmod +x /AutoBot/run_in_docker.sh && chmod +x /AutoBot/scripts/*.sh
-# CMD ["python3", "main.py"]
-# CMD ["/AutoBot/run_in_docker.sh"]
+RUN chmod +x /AutoBot/*.sh && chmod +x /AutoBot/scripts/*.sh
 
-# ENTRYPOINT ["bash", "/AutoBot/run_in_docker.sh"]
-# CMD ["--wait"]
+# ENTRYPOINT ["bash", "/AutoBot/docker_startup.sh"]

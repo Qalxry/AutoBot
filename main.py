@@ -13,25 +13,32 @@ import yaml
 # TODO 开发 AstrBot 端的 LLM 智能聊天功能（回复 JSON 来控制附加功能）
 # TODO 将 AutoBot 上传到 PyPI 上
 
+
 async def main():
     if not os.path.exists("data/config.yaml"):
         shutil.copyfile("config.default.yaml", "data/config.yaml")
-    
+
     with open("data/config.yaml", "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-        
+
     # 清空临时文件夹
     clear_temp_at_startup = config.get("clear_temp_at_startup", True)
     if clear_temp_at_startup:
         TEMP_DIR = config["TEMP_DIR"]
         shutil.rmtree(TEMP_DIR, ignore_errors=True)
         os.makedirs(TEMP_DIR, exist_ok=True)
-    
+
     set_logger_level(config["log_level"])
     set_config(config)
     init_auto()
     asyncio.create_task(message_monitor())
-    await run_reverse_websocket(config["ws_server"], config["self_id"])
+    await run_reverse_websocket(
+        uri=config["ws_server"],
+        bot_qid=config["self_id"],
+        reconnect_delay=config["reconnect_delay"],
+        ping_interval=config["ping_interval"],
+        ping_timeout=config["ping_timeout"],
+    )
 
 
 if __name__ == "__main__":
