@@ -1,16 +1,56 @@
-# Ignored files
-**/__pycache__
-**/.vscode
-**/.idea
-**/.old
-**/test
-**/temp
-**/logs
-**/backup
-**/data/*
-**/bin/*
-# Python 缓存
-*.pyc
-*.pyo
+# # Ignored files
+# **/__pycache__
+# **/.vscode
+# **/.idea
+# **/.old
+# **/test
+# **/temp
+# **/logs
+# **/backup
+# **/data/*
+# **/bin/*
 
-!**/.gitkeep
+
+
+# # Python 缓存
+# *.pyc
+# *.pyo
+
+# !**/.gitkeep
+
+
+# 忽略所有内容
+*
+
+# 递归允许所有目录 (保持目录结构)
+
+# 允许根目录特殊文件
+!.gitignore
+!/bin/.gitkeep
+!requirements.txt
+
+# 允许特定文件类型 (递归)
+!/*.[mM][dD]
+!/*.[tT][xX][tT]
+!/*.[yY][aA][mM][lL]
+!/*.[yY][mM][lL]
+!/*.[sS][hH]
+!/*.[pP][yY]
+!/scripts/*.[sS][hH]
+!/scripts/*.[pP][yY]
+
+# 允许构建文件 (递归)
+!Makefile
+!CMakeLists.txt
+!*.cmake
+
+/backup
+/logs
+/test
+/temp
+/AstrBot_data
+/.old
+/.vscode
+/.vs
+/.idea
+/__pycache__
