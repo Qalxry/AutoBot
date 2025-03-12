@@ -1,10 +1,9 @@
-sleep 0.2
-window_id=$(xdotool search --name "AutoBot_Terminal")
-sleep 0.2
-xdotool windowactivate $window_id
-sleep 0.2
-xdotool key super+Right # xdotool 发送 super+方向右键
-sleep 0.2
-xdotool click --window "AutoBot_Terminal" 1
-sleep 0.2
-python3 main.py
+if command -v xfce4-terminal >/dev/null 2>&1; then
+    xfce4-terminal --title="AutoBot_Terminal" --command="bash ./scripts/adjust_terminal.sh"
+elif command -v gnome-terminal >/dev/null 2>&1; then
+    gnome-terminal --title="AutoBot_Terminal" --command="bash ./scripts/adjust_terminal.sh"
+elif command -v xterm >/dev/null 2>&1; then
+    xterm -T "AutoBot_Terminal" -e "bash ./scripts/adjust_terminal.sh"
+else
+    echo "[AutoBot] xfce4-terminal or gnome-terminal not found, please install one of them."
+fi

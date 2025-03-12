@@ -235,8 +235,8 @@ async def receive_messages(
     logger.info("启动接收任务")
     try:
         async for request in websocket:
-            logger.info(f"收到请求: {request}")
             req = json.loads(request)
+            logger.info(f"收到请求: {req}")
             response = adapter.parse_request(req)
             logger.info(f"发送响应: {response}")
             await websocket.send(response)

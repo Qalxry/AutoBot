@@ -369,6 +369,14 @@ def qq_send_file(file_path, file_name=None):
     # 1h 后删除临时文件
     # os.remove(temp_file)
 
+def unescape_node_message(message: str) -> str:
+    """
+    &	&amp;
+    [	&#91;
+    ]	&#93;
+    ,	&#44;
+    """
+    return message.replace("&amp;", "&").replace("&#91;", "[").replace("&#93;", "]").replace("&#44;", ",")
 
 @enable_log
 def qq_send_message(message_type: Literal["group", "private"], chat_id: str, message: list):
@@ -388,6 +396,17 @@ def qq_send_message(message_type: Literal["group", "private"], chat_id: str, mes
             if item["type"] == "text":
                 text_gather += item["data"]["text"].strip()
                 has_input_text = True
+                continue
+            # 自定义节点类型
+            elif item['type'] == 'node':
+                if isinstance(item['data']['content'], str):
+                    # 为 str 时只有一条消息，等同于 text 类型
+                    # text_gather += item['data']['content'].strip()
+                    text_gather += unescape_node_message(item['data']['content'].strip())
+                    has_input_text = True
+                else:
+                    # 可能为 list , 但这里不做处理
+                    logger.warning(f"不支持的消息类型: {item}")
                 continue
             elif item["type"] == "json":
                 text_gather += item["data"]["data"].strip()

@@ -1,20 +1,57 @@
-# 复用 gitignore 规则
-**/__pycache__
-**/.vscode
-**/.idea
-**/.old
-**/test
-**/temp
-**/logs
-**/backup
-**/data/*
-*.pyc
-*.pyo
-!**/.gitkeep
+# # 复用 gitignore 规则
+# **/__pycache__
+# **/.vscode
+# **/.idea
+# **/.old
+# **/test
+# **/temp
+# **/logs
+# **/backup
+# **/data/*
+# *.pyc
+# *.pyo
+# !**/.gitkeep
+
+
+# 忽略所有内容
+*
+
+# 递归允许所有目录 (保持目录结构)
+
+# 允许根目录特殊文件
+!.gitignore
+!/bin/.gitkeep
+!requirements.txt
+
+# 允许特定文件类型 (递归)
+!/*.[mM][dD]
+!/*.[tT][xX][tT]
+!/*.[yY][aA][mM][lL]
+!/*.[yY][mM][lL]
+!/*.[sS][hH]
+!/*.[pP][yY]
+!/scripts/*.[sS][hH]
+!/scripts/*.[pP][yY]
+
+# 允许构建文件 (递归)
+!Makefile
+!CMakeLists.txt
+!*.cmake
+
+/backup
+/logs
+/test
+/temp
+/AstrBot_data
+/.old
+/.vscode
+/.vs
+/.idea
+/__pycache__
 
 # 补充 Docker 专用忽略规则
-Dockerfile
-.dockerignore
-docker-compose*.yml
-*.dockerignore
-*.swp
+# Dockerfile
+# .dockerignore
+# docker-compose*.yml
+# *.dockerignore
+# *.swp
